@@ -1,5 +1,5 @@
 import 'package:finanzio/presentation/screens/home_screen.dart';
-import 'package:finanzio/presentation/screens/transaction_screen.dart';
+import 'package:finanzio/presentation/screens/transactions/transaction_screen.dart';
 import 'package:finanzio/presentation/screens/wallet_screen.dart';
 import 'package:finanzio/presentation/screens/budget_screen.dart';
 import 'package:finanzio/presentation/screens/debt_screen.dart';
