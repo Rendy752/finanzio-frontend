@@ -90,8 +90,8 @@ class _$DebtModelCopyWithImpl<$Res, $Val extends DebtModel>
     Object? contactName = null,
     Object? phoneNumber = freezed,
     Object? isDebtToUser = null,
-    Object? totalAmount = freezed,
-    Object? amountPaid = freezed,
+    Object? totalAmount = null,
+    Object? amountPaid = null,
     Object? dueDate = freezed,
     Object? isSettled = null,
   }) {
@@ -117,11 +117,11 @@ class _$DebtModelCopyWithImpl<$Res, $Val extends DebtModel>
                 ? _value.isDebtToUser
                 : isDebtToUser // ignore: cast_nullable_to_non_nullable
                       as bool,
-            totalAmount: freezed == totalAmount
+            totalAmount: null == totalAmount
                 ? _value.totalAmount
                 : totalAmount // ignore: cast_nullable_to_non_nullable
                       as Decimal,
-            amountPaid: freezed == amountPaid
+            amountPaid: null == amountPaid
                 ? _value.amountPaid
                 : amountPaid // ignore: cast_nullable_to_non_nullable
                       as Decimal,
@@ -180,8 +180,8 @@ class __$$DebtModelImplCopyWithImpl<$Res>
     Object? contactName = null,
     Object? phoneNumber = freezed,
     Object? isDebtToUser = null,
-    Object? totalAmount = freezed,
-    Object? amountPaid = freezed,
+    Object? totalAmount = null,
+    Object? amountPaid = null,
     Object? dueDate = freezed,
     Object? isSettled = null,
   }) {
@@ -207,11 +207,11 @@ class __$$DebtModelImplCopyWithImpl<$Res>
             ? _value.isDebtToUser
             : isDebtToUser // ignore: cast_nullable_to_non_nullable
                   as bool,
-        totalAmount: freezed == totalAmount
+        totalAmount: null == totalAmount
             ? _value.totalAmount
             : totalAmount // ignore: cast_nullable_to_non_nullable
                   as Decimal,
-        amountPaid: freezed == amountPaid
+        amountPaid: null == amountPaid
             ? _value.amountPaid
             : amountPaid // ignore: cast_nullable_to_non_nullable
                   as Decimal,
@@ -298,14 +298,10 @@ class _$DebtModelImpl implements _DebtModel {
                 other.phoneNumber == phoneNumber) &&
             (identical(other.isDebtToUser, isDebtToUser) ||
                 other.isDebtToUser == isDebtToUser) &&
-            const DeepCollectionEquality().equals(
-              other.totalAmount,
-              totalAmount,
-            ) &&
-            const DeepCollectionEquality().equals(
-              other.amountPaid,
-              amountPaid,
-            ) &&
+            (identical(other.totalAmount, totalAmount) ||
+                other.totalAmount == totalAmount) &&
+            (identical(other.amountPaid, amountPaid) ||
+                other.amountPaid == amountPaid) &&
             (identical(other.dueDate, dueDate) || other.dueDate == dueDate) &&
             (identical(other.isSettled, isSettled) ||
                 other.isSettled == isSettled));
@@ -320,8 +316,8 @@ class _$DebtModelImpl implements _DebtModel {
     contactName,
     phoneNumber,
     isDebtToUser,
-    const DeepCollectionEquality().hash(totalAmount),
-    const DeepCollectionEquality().hash(amountPaid),
+    totalAmount,
+    amountPaid,
     dueDate,
     isSettled,
   );

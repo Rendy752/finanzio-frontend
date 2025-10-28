@@ -79,7 +79,7 @@ class _$WalletModelCopyWithImpl<$Res, $Val extends WalletModel>
     Object? userId = null,
     Object? walletName = null,
     Object? currency = null,
-    Object? currentBalance = freezed,
+    Object? currentBalance = null,
   }) {
     return _then(
       _value.copyWith(
@@ -99,7 +99,7 @@ class _$WalletModelCopyWithImpl<$Res, $Val extends WalletModel>
                 ? _value.currency
                 : currency // ignore: cast_nullable_to_non_nullable
                       as String,
-            currentBalance: freezed == currentBalance
+            currentBalance: null == currentBalance
                 ? _value.currentBalance
                 : currentBalance // ignore: cast_nullable_to_non_nullable
                       as Decimal,
@@ -147,7 +147,7 @@ class __$$WalletModelImplCopyWithImpl<$Res>
     Object? userId = null,
     Object? walletName = null,
     Object? currency = null,
-    Object? currentBalance = freezed,
+    Object? currentBalance = null,
   }) {
     return _then(
       _$WalletModelImpl(
@@ -167,7 +167,7 @@ class __$$WalletModelImplCopyWithImpl<$Res>
             ? _value.currency
             : currency // ignore: cast_nullable_to_non_nullable
                   as String,
-        currentBalance: freezed == currentBalance
+        currentBalance: null == currentBalance
             ? _value.currentBalance
             : currentBalance // ignore: cast_nullable_to_non_nullable
                   as Decimal,
@@ -225,10 +225,8 @@ class _$WalletModelImpl implements _WalletModel {
                 other.walletName == walletName) &&
             (identical(other.currency, currency) ||
                 other.currency == currency) &&
-            const DeepCollectionEquality().equals(
-              other.currentBalance,
-              currentBalance,
-            ));
+            (identical(other.currentBalance, currentBalance) ||
+                other.currentBalance == currentBalance));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -239,7 +237,7 @@ class _$WalletModelImpl implements _WalletModel {
     userId,
     walletName,
     currency,
-    const DeepCollectionEquality().hash(currentBalance),
+    currentBalance,
   );
 
   /// Create a copy of WalletModel

@@ -80,7 +80,7 @@ class _$BudgetModelCopyWithImpl<$Res, $Val extends BudgetModel>
     Object? budgetId = null,
     Object? userId = null,
     Object? categoryId = null,
-    Object? amountLimit = freezed,
+    Object? amountLimit = null,
     Object? startDate = null,
     Object? endDate = null,
   }) {
@@ -98,7 +98,7 @@ class _$BudgetModelCopyWithImpl<$Res, $Val extends BudgetModel>
                 ? _value.categoryId
                 : categoryId // ignore: cast_nullable_to_non_nullable
                       as String,
-            amountLimit: freezed == amountLimit
+            amountLimit: null == amountLimit
                 ? _value.amountLimit
                 : amountLimit // ignore: cast_nullable_to_non_nullable
                       as Decimal,
@@ -152,7 +152,7 @@ class __$$BudgetModelImplCopyWithImpl<$Res>
     Object? budgetId = null,
     Object? userId = null,
     Object? categoryId = null,
-    Object? amountLimit = freezed,
+    Object? amountLimit = null,
     Object? startDate = null,
     Object? endDate = null,
   }) {
@@ -170,7 +170,7 @@ class __$$BudgetModelImplCopyWithImpl<$Res>
             ? _value.categoryId
             : categoryId // ignore: cast_nullable_to_non_nullable
                   as String,
-        amountLimit: freezed == amountLimit
+        amountLimit: null == amountLimit
             ? _value.amountLimit
             : amountLimit // ignore: cast_nullable_to_non_nullable
                   as Decimal,
@@ -239,10 +239,8 @@ class _$BudgetModelImpl implements _BudgetModel {
             (identical(other.userId, userId) || other.userId == userId) &&
             (identical(other.categoryId, categoryId) ||
                 other.categoryId == categoryId) &&
-            const DeepCollectionEquality().equals(
-              other.amountLimit,
-              amountLimit,
-            ) &&
+            (identical(other.amountLimit, amountLimit) ||
+                other.amountLimit == amountLimit) &&
             (identical(other.startDate, startDate) ||
                 other.startDate == startDate) &&
             (identical(other.endDate, endDate) || other.endDate == endDate));
@@ -255,7 +253,7 @@ class _$BudgetModelImpl implements _BudgetModel {
     budgetId,
     userId,
     categoryId,
-    const DeepCollectionEquality().hash(amountLimit),
+    amountLimit,
     startDate,
     endDate,
   );

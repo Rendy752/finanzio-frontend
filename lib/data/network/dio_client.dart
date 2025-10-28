@@ -5,7 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 // URL Backend FastAPI Anda
 const String _baseUrl =
-    'http://localhost:8000/api/v1'; // Android Emulator uses 10.0.2.2
+    'http://127.0.0.1:8000/api/v1'; // Android Emulator uses 10.0.2.2
 // Jika targetnya Web/Desktop: const String _baseUrl = 'http://localhost:8000/api/v1';
 
 // Provider yang akan digunakan oleh Riverpod untuk mendapatkan instance Dio

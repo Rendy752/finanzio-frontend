@@ -82,7 +82,7 @@ class _$TransactionModelCopyWithImpl<$Res, $Val extends TransactionModel>
     Object? walletId = null,
     Object? categoryId = null,
     Object? transactionType = null,
-    Object? amount = freezed,
+    Object? amount = null,
     Object? description = null,
     Object? transactionDate = null,
   }) {
@@ -104,7 +104,7 @@ class _$TransactionModelCopyWithImpl<$Res, $Val extends TransactionModel>
                 ? _value.transactionType
                 : transactionType // ignore: cast_nullable_to_non_nullable
                       as TransactionType,
-            amount: freezed == amount
+            amount: null == amount
                 ? _value.amount
                 : amount // ignore: cast_nullable_to_non_nullable
                       as Decimal,
@@ -160,7 +160,7 @@ class __$$TransactionModelImplCopyWithImpl<$Res>
     Object? walletId = null,
     Object? categoryId = null,
     Object? transactionType = null,
-    Object? amount = freezed,
+    Object? amount = null,
     Object? description = null,
     Object? transactionDate = null,
   }) {
@@ -182,7 +182,7 @@ class __$$TransactionModelImplCopyWithImpl<$Res>
             ? _value.transactionType
             : transactionType // ignore: cast_nullable_to_non_nullable
                   as TransactionType,
-        amount: freezed == amount
+        amount: null == amount
             ? _value.amount
             : amount // ignore: cast_nullable_to_non_nullable
                   as Decimal,
@@ -254,7 +254,7 @@ class _$TransactionModelImpl implements _TransactionModel {
                 other.categoryId == categoryId) &&
             (identical(other.transactionType, transactionType) ||
                 other.transactionType == transactionType) &&
-            const DeepCollectionEquality().equals(other.amount, amount) &&
+            (identical(other.amount, amount) || other.amount == amount) &&
             (identical(other.description, description) ||
                 other.description == description) &&
             (identical(other.transactionDate, transactionDate) ||
@@ -269,7 +269,7 @@ class _$TransactionModelImpl implements _TransactionModel {
     walletId,
     categoryId,
     transactionType,
-    const DeepCollectionEquality().hash(amount),
+    amount,
     description,
     transactionDate,
   );

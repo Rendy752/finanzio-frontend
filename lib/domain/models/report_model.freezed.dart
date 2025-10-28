@@ -78,22 +78,22 @@ class _$FinancialSummaryModelCopyWithImpl<
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? totalIncome = freezed,
-    Object? totalExpense = freezed,
-    Object? netBalance = freezed,
+    Object? totalIncome = null,
+    Object? totalExpense = null,
+    Object? netBalance = null,
     Object? dateGenerated = null,
   }) {
     return _then(
       _value.copyWith(
-            totalIncome: freezed == totalIncome
+            totalIncome: null == totalIncome
                 ? _value.totalIncome
                 : totalIncome // ignore: cast_nullable_to_non_nullable
                       as Decimal,
-            totalExpense: freezed == totalExpense
+            totalExpense: null == totalExpense
                 ? _value.totalExpense
                 : totalExpense // ignore: cast_nullable_to_non_nullable
                       as Decimal,
-            netBalance: freezed == netBalance
+            netBalance: null == netBalance
                 ? _value.netBalance
                 : netBalance // ignore: cast_nullable_to_non_nullable
                       as Decimal,
@@ -139,22 +139,22 @@ class __$$FinancialSummaryModelImplCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? totalIncome = freezed,
-    Object? totalExpense = freezed,
-    Object? netBalance = freezed,
+    Object? totalIncome = null,
+    Object? totalExpense = null,
+    Object? netBalance = null,
     Object? dateGenerated = null,
   }) {
     return _then(
       _$FinancialSummaryModelImpl(
-        totalIncome: freezed == totalIncome
+        totalIncome: null == totalIncome
             ? _value.totalIncome
             : totalIncome // ignore: cast_nullable_to_non_nullable
                   as Decimal,
-        totalExpense: freezed == totalExpense
+        totalExpense: null == totalExpense
             ? _value.totalExpense
             : totalExpense // ignore: cast_nullable_to_non_nullable
                   as Decimal,
-        netBalance: freezed == netBalance
+        netBalance: null == netBalance
             ? _value.netBalance
             : netBalance // ignore: cast_nullable_to_non_nullable
                   as Decimal,
@@ -210,18 +210,12 @@ class _$FinancialSummaryModelImpl implements _FinancialSummaryModel {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$FinancialSummaryModelImpl &&
-            const DeepCollectionEquality().equals(
-              other.totalIncome,
-              totalIncome,
-            ) &&
-            const DeepCollectionEquality().equals(
-              other.totalExpense,
-              totalExpense,
-            ) &&
-            const DeepCollectionEquality().equals(
-              other.netBalance,
-              netBalance,
-            ) &&
+            (identical(other.totalIncome, totalIncome) ||
+                other.totalIncome == totalIncome) &&
+            (identical(other.totalExpense, totalExpense) ||
+                other.totalExpense == totalExpense) &&
+            (identical(other.netBalance, netBalance) ||
+                other.netBalance == netBalance) &&
             (identical(other.dateGenerated, dateGenerated) ||
                 other.dateGenerated == dateGenerated));
   }
@@ -230,9 +224,9 @@ class _$FinancialSummaryModelImpl implements _FinancialSummaryModel {
   @override
   int get hashCode => Object.hash(
     runtimeType,
-    const DeepCollectionEquality().hash(totalIncome),
-    const DeepCollectionEquality().hash(totalExpense),
-    const DeepCollectionEquality().hash(netBalance),
+    totalIncome,
+    totalExpense,
+    netBalance,
     dateGenerated,
   );
 

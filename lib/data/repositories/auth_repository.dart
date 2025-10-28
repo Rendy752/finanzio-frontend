@@ -4,7 +4,6 @@ import 'package:finanzio/domain/models/auth_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-// Repository Provider
 final authRepositoryProvider = Provider(
   (ref) => AuthRepository(ref.read(dioProvider)),
 );
@@ -16,11 +15,13 @@ class AuthRepository {
 
   Future<TokenResponse> login(String email, String password) async {
     try {
+      // Dio akan mencoba mengkodekan Map ini menjadi string form-urlencoded
+      // karena opsi contentType diatur di bawah.
       final dataToSend = {'username': email, 'password': password};
 
       final response = await _dio.post(
         '/token',
-        data: dataToSend,
+        data: dataToSend, // Kirim Map<String, dynamic>
         options: Options(contentType: Headers.formUrlEncodedContentType),
       );
 
@@ -30,11 +31,13 @@ class AuthRepository {
 
       return token;
     } on DioException catch (e) {
+      // Menangani error dari FastAPI (misalnya 400 Bad Request / Invalid credentials)
       if (e.response?.statusCode == 400 || e.response?.statusCode == 401) {
         throw Exception(
           e.response?.data['detail'] ?? 'Kredensial tidak valid.',
         );
       }
+      // Menangani error jaringan lainnya
       throw Exception(e.message ?? 'Login failed due to network error.');
     }
   }
@@ -44,6 +47,7 @@ class AuthRepository {
     await prefs.remove('jwt_token');
   }
 
+  // Method untuk mengecek status login
   Future<bool> isAuthenticated() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('jwt_token')?.isNotEmpty ?? false;
