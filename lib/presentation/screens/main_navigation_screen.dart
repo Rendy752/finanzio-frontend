@@ -1,6 +1,8 @@
 import 'package:finanzio/presentation/screens/home_screen.dart';
 import 'package:finanzio/presentation/screens/transaction_screen.dart';
 import 'package:finanzio/presentation/screens/wallet_screen.dart';
+import 'package:finanzio/presentation/screens/budget_screen.dart';
+import 'package:finanzio/presentation/screens/debt_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -8,11 +10,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 final bottomNavIndexProvider = StateProvider<int>((ref) => 0);
 
 class MainNavigationScreen extends ConsumerWidget {
+  // FIX: Mengganti placeholder dengan screens yang sudah diimplementasi
   final List<Widget> _screens = [
-    HomeScreen(),
-    TransactionScreen(),
-    WalletScreen(),
-    const Center(child: Text("Halaman Budget & Debt")), // Placeholder
+    HomeScreen(), // Index 0
+    TransactionScreen(), // Index 1
+    WalletScreen(), // Index 2
+    BudgetScreen(), // Index 3
+    DebtScreen(), // Index 4
   ];
 
   @override
@@ -25,6 +29,7 @@ class MainNavigationScreen extends ConsumerWidget {
         currentIndex: selectedIndex,
         selectedItemColor: Colors.indigo,
         unselectedItemColor: Colors.grey,
+        type: BottomNavigationBarType.fixed, // Penting untuk 5 item
         onTap: (index) {
           ref.read(bottomNavIndexProvider.notifier).state = index;
         },
@@ -41,7 +46,11 @@ class MainNavigationScreen extends ConsumerWidget {
             icon: Icon(Icons.account_balance_wallet),
             label: 'Akun',
           ),
-          BottomNavigationBarItem(icon: Icon(Icons.paid), label: 'Lainnya'),
+          BottomNavigationBarItem(icon: Icon(Icons.paid), label: 'Budget'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.receipt_long),
+            label: 'Utang',
+          ),
         ],
       ),
     );

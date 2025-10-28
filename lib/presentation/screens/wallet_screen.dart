@@ -31,9 +31,9 @@ class WalletScreen extends ConsumerWidget {
             itemCount: listResponse.data.length,
             itemBuilder: (context, index) {
               final wallet = listResponse.data[index];
-              return _WalletItem(
+              return WalletTile(
                 wallet: wallet,
-                formatter: currencyFormatter,
+                currencyFormatter: currencyFormatter,
                 onDelete: (id) => _confirmDelete(context, ref, id),
               );
             },
@@ -91,7 +91,6 @@ class WalletScreen extends ConsumerWidget {
               decoration: const InputDecoration(labelText: 'Saldo Awal'),
               keyboardType: TextInputType.number,
             ),
-            // Dalam aplikasi nyata, gunakan Dropdown untuk memilih mata uang
           ],
         ),
         actions: [
@@ -120,44 +119,53 @@ class WalletScreen extends ConsumerWidget {
   }
 }
 
-class _WalletItem extends StatelessWidget {
+class WalletTile extends ConsumerWidget {
   final WalletModel wallet;
-  final NumberFormat formatter;
+  final NumberFormat currencyFormatter;
   final Function(String) onDelete;
 
-  const _WalletItem({
+  const WalletTile({
     required this.wallet,
-    required this.formatter,
+    required this.currencyFormatter,
     required this.onDelete,
-  });
+    Key? key,
+  }) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Tentukan apakah saldo negatif dengan membandingkannya dengan Decimal.zero
     final isNegative = wallet.currentBalance.compareTo(Decimal.zero) < 0;
 
-    return ListTile(
-      leading: const Icon(Icons.account_balance_wallet),
-      title: Text(wallet.walletName),
-      subtitle: Text('IDR | ${wallet.userId.substring(0, 8)}...'),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            formatter.format(wallet.currentBalance.toDouble()),
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: isNegative ? Colors.red.shade700 : Colors.green.shade700,
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8.0),
+      child: ListTile(
+        leading: const Icon(Icons.account_balance_wallet, color: Colors.indigo),
+        title: Text(
+          wallet.walletName,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        subtitle: Text('Mata Uang: ${wallet.currency}'),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              // Menggunakan .toDouble() untuk kompatibilitas intl
+              currencyFormatter.format(wallet.currentBalance.toDouble()),
+              style: TextStyle(
+                color: isNegative ? Colors.red.shade700 : Colors.green.shade700,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.delete, color: Colors.grey),
-            onPressed: () => onDelete(wallet.walletId),
-          ),
-        ],
+            IconButton(
+              icon: const Icon(Icons.delete, color: Colors.grey),
+              onPressed: () => onDelete(wallet.walletId),
+            ),
+          ],
+        ),
+        onTap: () {
+          // Implementasi Edit Wallet
+        },
       ),
-      onTap: () {
-        // Implementasi Edit Wallet
-      },
     );
   }
 }
