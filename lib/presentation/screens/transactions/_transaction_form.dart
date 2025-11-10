@@ -3,6 +3,7 @@ import 'package:finanzio/data/repositories/transaction_repository.dart';
 import 'package:finanzio/data/repositories/wallet_repository.dart';
 import 'package:finanzio/data/repositories/report_repository.dart';
 import 'package:finanzio/domain/models/category_model.dart';
+import 'package:finanzio/domain/models/common/api_response.dart';
 import 'package:finanzio/domain/models/wallet_model.dart';
 import 'package:finanzio/domain/models/transaction_model.dart';
 import 'package:finanzio/presentation/screens/transactions/transaction_screen.dart';
@@ -28,24 +29,84 @@ class _TransactionFormState extends ConsumerState<TransactionForm> {
   final _descController = TextEditingController();
   final DateFormat _dateFormat = DateFormat('yyyy-MM-dd');
 
-  // State lokal
   String? selectedWalletId;
   String? selectedCategoryId;
   DateTime? selectedDate;
-  bool isDateSelectionActive = false; // Checkbox state
+  bool isDateSelectionActive = false;
+
+  CategoryModel? _defaultCategory;
 
   @override
   void initState() {
     super.initState();
-    // PRE-POPULATE fields if editing an existing transaction
     if (widget.transactionToEdit != null) {
       final txn = widget.transactionToEdit!;
       _amountController.text = txn.amount.toString();
       _descController.text = txn.description;
-      selectedWalletId = txn.walletId;
-      selectedCategoryId = txn.categoryId;
       selectedDate = txn.transactionDate;
       isDateSelectionActive = true;
+    } else {
+      Future.microtask(() => _initializeDefaults());
+    }
+  }
+
+  Future<void> _initializeDefaults() async {
+    final walletListNotifier = ref.read(walletListProvider.notifier);
+
+    await walletListNotifier.fetchWallets();
+    final walletsAsync = ref.read(walletListProvider);
+
+    APIListResponse<WalletModel>? walletResponse;
+
+    if (walletsAsync is AsyncData<APIListResponse<WalletModel>>) {
+      walletResponse = walletsAsync.value;
+    } else {
+      if (mounted) {
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Gagal memuat akun. Coba lagi.')),
+        );
+      }
+      return;
+    }
+
+    if (walletResponse!.data.isEmpty) {
+      if (mounted) {
+        Navigator.of(context).pop();
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Anda perlu membuat Akun (Wallet) terlebih dahulu.'),
+          ),
+        );
+      }
+      return;
+    }
+
+    CategoryModel? defaultCategory;
+    try {
+      final categoryResponse = await ref.read(categoryListProvider.future);
+      final categoryList = categoryResponse.data;
+
+      final defaultCategoryName = widget.type == TransactionType.income
+          ? 'Transfer In'
+          : 'Transfer Out';
+
+      defaultCategory = categoryList.firstWhere(
+        (c) =>
+            c.categoryName.toLowerCase() == defaultCategoryName.toLowerCase() &&
+            c.type == widget.type,
+        orElse: () => categoryList.firstWhere((c) => c.type == widget.type),
+      );
+    } catch (e) {
+      print('Error setting default category: $e');
+    }
+
+    if (mounted) {
+      setState(() {
+        _defaultCategory = defaultCategory;
+        selectedCategoryId = _defaultCategory?.categoryId;
+      });
     }
   }
 
@@ -78,13 +139,13 @@ class _TransactionFormState extends ConsumerState<TransactionForm> {
     final transactionNotifier = ref.read(transactionListProvider.notifier);
     final walletNotifier = ref.read(walletListProvider.notifier);
 
-    final isEditing = widget.transactionToEdit != null; // <-- NEW CHECK
+    final isEditing = widget.transactionToEdit != null;
 
     return Scaffold(
       appBar: AppBar(
         title: Text(
           isEditing
-              ? 'Edit Transaksi' // <-- DYNAMIC TITLE
+              ? 'Edit Transaksi'
               : (widget.type == TransactionType.income
                     ? 'Catat Pemasukan'
                     : 'Catat Pengeluaran'),
@@ -101,13 +162,35 @@ class _TransactionFormState extends ConsumerState<TransactionForm> {
             data: (walletResponse) {
               final availableWallets = walletResponse.data;
 
-              // Helper to find initial wallet
-              WalletModel? initialWallet = isEditing
-                  ? availableWallets.firstWhere(
-                      (w) => w.walletId == widget.transactionToEdit!.walletId,
-                      orElse: () => availableWallets.first,
-                    )
+              if (availableWallets.isEmpty && !isEditing) {
+                return const Center(
+                  child: Text(
+                    'Tidak ada akun. Silakan buat akun terlebih dahulu.',
+                  ),
+                );
+              }
+
+              WalletModel? currentWallet;
+              if (isEditing) {
+                try {
+                  currentWallet = availableWallets.firstWhere(
+                    (w) => w.walletId == widget.transactionToEdit!.walletId,
+                  );
+                } catch (_) {
+                  currentWallet = availableWallets.isNotEmpty
+                      ? availableWallets.first
+                      : null;
+                }
+              }
+              currentWallet ??= availableWallets.isNotEmpty
+                  ? availableWallets.first
                   : null;
+
+              if (!isEditing &&
+                  selectedWalletId == null &&
+                  currentWallet != null) {
+                selectedWalletId = currentWallet.walletId;
+              }
 
               return categoriesAsync.when(
                 loading: () => const Center(child: CircularProgressIndicator()),
@@ -118,22 +201,44 @@ class _TransactionFormState extends ConsumerState<TransactionForm> {
                       .where((c) => c.type == widget.type)
                       .toList();
 
-                  // Helper to find initial category
-                  CategoryModel? initialCategory = isEditing
-                      ? availableCategories.firstWhere(
-                          (c) =>
-                              c.categoryId ==
-                              widget.transactionToEdit!.categoryId,
-                          orElse: () => availableCategories.first,
-                        )
-                      : null;
+                  CategoryModel? currentCategory;
+                  if (isEditing) {
+                    try {
+                      currentCategory = availableCategories.firstWhere(
+                        (c) =>
+                            c.categoryId ==
+                            widget.transactionToEdit!.categoryId,
+                      );
+                    } catch (_) {
+                      currentCategory = _defaultCategory;
+                    }
+                  }
+                  currentCategory ??= _defaultCategory;
+                  if (currentCategory == null &&
+                      availableCategories.isNotEmpty) {
+                    currentCategory = availableCategories.first;
+                  }
+
+                  if (!isEditing &&
+                      selectedCategoryId == null &&
+                      currentCategory != null) {
+                    selectedCategoryId = currentCategory.categoryId;
+                  }
+
+                  if (!isEditing && currentCategory == null) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  if (currentWallet == null) {
+                    return const Center(
+                      child: Text('Tidak ada akun yang tersedia.'),
+                    );
+                  }
 
                   return ListView(
                     children: [
-                      // --- Dropdown Wallet (Dengan Search & Initial Value) ---
                       DropdownSearch<WalletModel>(
-                        // ... (Prop yang sama) ...
-                        selectedItem: initialWallet, // <-- SET INITIAL VALUE
+                        selectedItem: currentWallet,
                         validator: (v) =>
                             v == null ? 'Pilih Akun sumber' : null,
                         items: availableWallets,
@@ -149,10 +254,8 @@ class _TransactionFormState extends ConsumerState<TransactionForm> {
                       ),
                       const SizedBox(height: 16),
 
-                      // --- Dropdown Category (Dengan Search & Initial Value) ---
                       DropdownSearch<CategoryModel>(
-                        // ... (Prop yang sama) ...
-                        selectedItem: initialCategory, // <-- SET INITIAL VALUE
+                        selectedItem: currentCategory,
                         validator: (v) => v == null ? 'Pilih Kategori' : null,
                         items: availableCategories,
                         itemAsString: (CategoryModel c) => c.categoryName,
@@ -167,7 +270,6 @@ class _TransactionFormState extends ConsumerState<TransactionForm> {
                       ),
                       const SizedBox(height: 16),
 
-                      // --- Input Jumlah ---
                       TextFormField(
                         controller: _amountController,
                         decoration: const InputDecoration(
@@ -185,7 +287,6 @@ class _TransactionFormState extends ConsumerState<TransactionForm> {
                       ),
                       const SizedBox(height: 16),
 
-                      // --- Input Deskripsi ---
                       TextFormField(
                         controller: _descController,
                         decoration: const InputDecoration(
@@ -197,7 +298,6 @@ class _TransactionFormState extends ConsumerState<TransactionForm> {
                       ),
                       const SizedBox(height: 16),
 
-                      // --- Checkbox Tanggal (NEW FEATURE) ---
                       Row(
                         children: [
                           Checkbox(
@@ -207,8 +307,7 @@ class _TransactionFormState extends ConsumerState<TransactionForm> {
                                 isDateSelectionActive = newValue ?? false;
                                 if (isDateSelectionActive &&
                                     selectedDate == null) {
-                                  selectedDate =
-                                      DateTime.now(); // Set default saat diaktifkan
+                                  selectedDate = DateTime.now();
                                 }
                               });
                             },
