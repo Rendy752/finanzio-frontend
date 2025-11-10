@@ -13,14 +13,13 @@ class WalletRepository {
 
   WalletRepository(this._dio);
 
-  // --- CREATE ---
   Future<WalletModel> createWallet(
     String name,
     String currency,
     String initialBalance,
   ) async {
     final response = await _dio.post(
-      '/wallets',
+      '/wallets/',
       data: {
         'wallet_name': name,
         'currency': currency,
@@ -34,14 +33,13 @@ class WalletRepository {
     return apiResponse.data;
   }
 
-  // --- READ ALL (PAGINATION/SEARCH) ---
   Future<APIListResponse<WalletModel>> getWallets({
     String? query,
     int limit = 10,
     int offset = 0,
   }) async {
     final response = await _dio.get(
-      '/wallets',
+      '/wallets/',
       queryParameters: {'q': query, 'limit': limit, 'offset': offset},
     );
     return APIListResponse<WalletModel>.fromJson(
@@ -50,7 +48,6 @@ class WalletRepository {
     );
   }
 
-  // --- UPDATE ---
   Future<WalletModel> updateWallet(
     String walletId,
     String name,
@@ -72,8 +69,6 @@ class WalletRepository {
     await _dio.delete('/wallets/$walletId');
   }
 }
-
-// --- Riverpod State Notifier ---
 
 final walletListProvider =
     StateNotifierProvider<

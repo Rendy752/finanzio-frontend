@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:finanzio/application/providers/auth_provider.dart';
 
 const String _baseUrl = 'https://finanzio-api.onrender.com/api/v1';
 // const String _baseUrl =
@@ -12,6 +13,7 @@ final dioProvider = Provider<Dio>((ref) {
     BaseOptions(
       baseUrl: _baseUrl,
       contentType: 'application/json',
+      // Maintaining the 60s timeout for cold start tolerance
       receiveTimeout: const Duration(seconds: 60),
       connectTimeout: const Duration(seconds: 60),
       sendTimeout: const Duration(seconds: 15),
@@ -44,5 +46,12 @@ class AuthInterceptor extends Interceptor {
     super.onRequest(options, handler);
   }
 
-  // Tambahkan logika onError untuk menangani 401/403 jika diperlukan (untuk refresh token)
+  @override
+  void onError(DioException err, ErrorInterceptorHandler handler) {
+    if (err.response?.statusCode == 401) {
+      // If unauthorized, force a logout, which will redirect the user
+      ref.read(authProvider.notifier).logout();
+    }
+    super.onError(err, handler);
+  }
 }

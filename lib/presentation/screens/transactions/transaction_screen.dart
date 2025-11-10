@@ -5,10 +5,9 @@ import 'package:finanzio/domain/models/transaction_model.dart';
 import 'package:finanzio/presentation/screens/transactions/_transaction_list.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:finanzio/presentation/screens/transactions/_transaction_form.dart'; // Import baru
-import 'package:finanzio/presentation/screens/transactions/_transfer_form.dart'; // Import baru
+import 'package:finanzio/presentation/screens/transactions/_transaction_form.dart';
+import 'package:finanzio/presentation/screens/transactions/_transfer_form.dart';
 
-// StateNotifier untuk mengelola daftar Transaksi
 final transactionListProvider =
     StateNotifierProvider<
       TransactionListNotifier,
@@ -27,12 +26,20 @@ class TransactionListNotifier
   }
 
   Future<void> fetchTransactions() async {
-    // state = const AsyncValue.loading(); // Tidak diaktifkan untuk menjaga UX, hanya loading indicator kecil
     try {
       final data = await _repository.getTransactions();
       state = AsyncValue.data(data);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
+    }
+  }
+
+  Future<void> deleteTransaction(String transactionId) async {
+    try {
+      await _repository.deleteTransaction(transactionId);
+      await fetchTransactions();
+    } catch (e) {
+      rethrow;
     }
   }
 }
@@ -42,7 +49,6 @@ enum TransactionTypeFilter { income, expense, transfer }
 class TransactionScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Watch provider di sini, tapi data ditampilkan di widget _TransactionList
     final transactionListAsync = ref.watch(transactionListProvider);
 
     return Scaffold(
@@ -69,9 +75,7 @@ class TransactionScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: TransactionList(
-        transactionListAsync: transactionListAsync,
-      ), // Delegasikan ke List Widget
+      body: TransactionList(transactionListAsync: transactionListAsync),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showTransactionTypeSelector(context),
         child: const Icon(Icons.swap_vert),

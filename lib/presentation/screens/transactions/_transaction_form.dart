@@ -4,6 +4,7 @@ import 'package:finanzio/data/repositories/wallet_repository.dart';
 import 'package:finanzio/data/repositories/report_repository.dart';
 import 'package:finanzio/domain/models/category_model.dart';
 import 'package:finanzio/domain/models/wallet_model.dart';
+import 'package:finanzio/domain/models/transaction_model.dart';
 import 'package:finanzio/presentation/screens/transactions/transaction_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,11 +12,11 @@ import 'package:decimal/decimal.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:intl/intl.dart';
 
-// Formulir Dasar Transaksi (Income/Expense)
 class TransactionForm extends ConsumerStatefulWidget {
   final TransactionType type;
+  final TransactionModel? transactionToEdit;
 
-  TransactionForm({required this.type, super.key});
+  TransactionForm({required this.type, this.transactionToEdit, super.key});
 
   @override
   ConsumerState<TransactionForm> createState() => _TransactionFormState();
@@ -32,6 +33,21 @@ class _TransactionFormState extends ConsumerState<TransactionForm> {
   String? selectedCategoryId;
   DateTime? selectedDate;
   bool isDateSelectionActive = false; // Checkbox state
+
+  @override
+  void initState() {
+    super.initState();
+    // PRE-POPULATE fields if editing an existing transaction
+    if (widget.transactionToEdit != null) {
+      final txn = widget.transactionToEdit!;
+      _amountController.text = txn.amount.toString();
+      _descController.text = txn.description;
+      selectedWalletId = txn.walletId;
+      selectedCategoryId = txn.categoryId;
+      selectedDate = txn.transactionDate;
+      isDateSelectionActive = true;
+    }
+  }
 
   @override
   void dispose() {
@@ -62,12 +78,16 @@ class _TransactionFormState extends ConsumerState<TransactionForm> {
     final transactionNotifier = ref.read(transactionListProvider.notifier);
     final walletNotifier = ref.read(walletListProvider.notifier);
 
+    final isEditing = widget.transactionToEdit != null; // <-- NEW CHECK
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          widget.type == TransactionType.income
-              ? 'Catat Pemasukan'
-              : 'Catat Pengeluaran',
+          isEditing
+              ? 'Edit Transaksi' // <-- DYNAMIC TITLE
+              : (widget.type == TransactionType.income
+                    ? 'Catat Pemasukan'
+                    : 'Catat Pengeluaran'),
         ),
       ),
       body: Padding(
@@ -81,6 +101,14 @@ class _TransactionFormState extends ConsumerState<TransactionForm> {
             data: (walletResponse) {
               final availableWallets = walletResponse.data;
 
+              // Helper to find initial wallet
+              WalletModel? initialWallet = isEditing
+                  ? availableWallets.firstWhere(
+                      (w) => w.walletId == widget.transactionToEdit!.walletId,
+                      orElse: () => availableWallets.first,
+                    )
+                  : null;
+
               return categoriesAsync.when(
                 loading: () => const Center(child: CircularProgressIndicator()),
                 error: (err, stack) =>
@@ -90,11 +118,22 @@ class _TransactionFormState extends ConsumerState<TransactionForm> {
                       .where((c) => c.type == widget.type)
                       .toList();
 
+                  // Helper to find initial category
+                  CategoryModel? initialCategory = isEditing
+                      ? availableCategories.firstWhere(
+                          (c) =>
+                              c.categoryId ==
+                              widget.transactionToEdit!.categoryId,
+                          orElse: () => availableCategories.first,
+                        )
+                      : null;
+
                   return ListView(
                     children: [
-                      // --- Dropdown Wallet (Dengan Search) ---
+                      // --- Dropdown Wallet (Dengan Search & Initial Value) ---
                       DropdownSearch<WalletModel>(
                         // ... (Prop yang sama) ...
+                        selectedItem: initialWallet, // <-- SET INITIAL VALUE
                         validator: (v) =>
                             v == null ? 'Pilih Akun sumber' : null,
                         items: availableWallets,
@@ -110,9 +149,10 @@ class _TransactionFormState extends ConsumerState<TransactionForm> {
                       ),
                       const SizedBox(height: 16),
 
-                      // --- Dropdown Category (Dengan Search) ---
+                      // --- Dropdown Category (Dengan Search & Initial Value) ---
                       DropdownSearch<CategoryModel>(
                         // ... (Prop yang sama) ...
+                        selectedItem: initialCategory, // <-- SET INITIAL VALUE
                         validator: (v) => v == null ? 'Pilih Kategori' : null,
                         items: availableCategories,
                         itemAsString: (CategoryModel c) => c.categoryName,
@@ -190,27 +230,39 @@ class _TransactionFormState extends ConsumerState<TransactionForm> {
                       ElevatedButton(
                         onPressed: () async {
                           if (_formKey.currentState!.validate()) {
-                            // Panggil repository
-                            await ref
-                                .read(transactionRepositoryProvider)
-                                .createTransaction(
-                                  selectedWalletId!,
-                                  selectedCategoryId!,
-                                  widget.type,
-                                  Decimal.parse(_amountController.text),
-                                  _descController.text,
-                                  // Mengirim tanggal jika diaktifkan
-                                  transactionDate: isDateSelectionActive
-                                      ? selectedDate
-                                      : null,
-                                );
+                            if (isEditing) {
+                              await ref
+                                  .read(transactionRepositoryProvider)
+                                  .updateTransaction(
+                                    widget.transactionToEdit!.transactionId,
+                                    selectedWalletId!,
+                                    selectedCategoryId!,
+                                    widget.transactionToEdit!.transactionType,
+                                    Decimal.parse(_amountController.text),
+                                    _descController.text,
+                                    transactionDate: isDateSelectionActive
+                                        ? selectedDate
+                                        : null,
+                                  );
+                            } else {
+                              await ref
+                                  .read(transactionRepositoryProvider)
+                                  .createTransaction(
+                                    selectedWalletId!,
+                                    selectedCategoryId!,
+                                    widget.type,
+                                    Decimal.parse(_amountController.text),
+                                    _descController.text,
+                                    transactionDate: isDateSelectionActive
+                                        ? selectedDate
+                                        : null,
+                                  );
+                            }
 
-                            // Refresh semua data setelah transaksi
                             await transactionNotifier.fetchTransactions();
                             await walletNotifier.fetchWallets();
                             ref.invalidate(financialSummaryProvider);
 
-                            // FIX: Add mounted check before using context
                             if (mounted) {
                               Navigator.of(context).pop();
                             }
@@ -220,7 +272,9 @@ class _TransactionFormState extends ConsumerState<TransactionForm> {
                           minimumSize: const Size(double.infinity, 50),
                         ),
                         child: Text(
-                          'Simpan ${widget.type == TransactionType.income ? 'Pemasukan' : 'Pengeluaran'}',
+                          isEditing
+                              ? 'Simpan Perubahan'
+                              : 'Simpan ${widget.type == TransactionType.income ? 'Pemasukan' : 'Pengeluaran'}',
                         ),
                       ),
                     ],
