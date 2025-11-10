@@ -40,7 +40,7 @@ class TransactionRepository {
       data['transaction_date'] = transactionDate.toIso8601String();
     }
 
-    final response = await _dio.post('/transactions', data: data);
+    final response = await _dio.post('/transactions/', data: data);
     final apiResponse = APIResponse<TransactionModel>.fromJson(
       response.data,
       (json) => TransactionModel.fromJson(json as Map<String, dynamic>),
@@ -48,14 +48,14 @@ class TransactionRepository {
     return apiResponse.data;
   }
 
-  // --- READ ALL TRANSACTIONS ---
+  // --- READ ALL TRANSACTIONS/ ---
   Future<APIListResponse<TransactionModel>> getTransactions({
     int limit = 20,
     int offset = 0,
     String? query,
   }) async {
     final response = await _dio.get(
-      '/transactions',
+      '/transactions/',
       queryParameters: {'limit': limit, 'offset': offset, 'q': query},
     );
     return APIListResponse<TransactionModel>.fromJson(
@@ -89,7 +89,7 @@ class TransactionRepository {
       data['transaction_date'] = transactionDate.toIso8601String();
     }
 
-    final response = await _dio.post('/finance/transfer', data: data);
+    final response = await _dio.post('/finance/transfer/', data: data);
 
     // Endpoint transfer mengembalikan List<TransactionResponse>
     final apiResponse = APIResponse<List<dynamic>>.fromJson(

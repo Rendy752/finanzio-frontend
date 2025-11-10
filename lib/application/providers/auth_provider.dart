@@ -1,10 +1,8 @@
 import 'package:finanzio/data/repositories/auth_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-// Enum untuk status otentikasi
 enum AuthStatus { unknown, authenticated, unauthenticated }
 
-// State Notifier
 class AuthNotifier extends StateNotifier<AuthStatus> {
   final AuthRepository _repository;
 
@@ -12,7 +10,6 @@ class AuthNotifier extends StateNotifier<AuthStatus> {
     _checkInitialAuth();
   }
 
-  // Cek token saat aplikasi dimuat
   Future<void> _checkInitialAuth() async {
     final isAuthenticated = await _repository.isAuthenticated();
     state = isAuthenticated
@@ -36,12 +33,10 @@ class AuthNotifier extends StateNotifier<AuthStatus> {
   }
 }
 
-// State Provider
 final authProvider = StateNotifierProvider<AuthNotifier, AuthStatus>((ref) {
   return AuthNotifier(ref.watch(authRepositoryProvider));
 });
 
-// Future Provider untuk cek status awal
 final authStatusProvider = FutureProvider<AuthStatus>((ref) async {
   final isAuthenticated = await ref
       .read(authRepositoryProvider)

@@ -188,10 +188,10 @@ class _TransactionFormState extends ConsumerState<TransactionForm> {
 
                       const SizedBox(height: 30),
                       ElevatedButton(
-                        onPressed: () {
+                        onPressed: () async {
                           if (_formKey.currentState!.validate()) {
                             // Panggil repository
-                            ref
+                            await ref
                                 .read(transactionRepositoryProvider)
                                 .createTransaction(
                                   selectedWalletId!,
@@ -206,10 +206,14 @@ class _TransactionFormState extends ConsumerState<TransactionForm> {
                                 );
 
                             // Refresh semua data setelah transaksi
-                            transactionNotifier.fetchTransactions();
-                            walletNotifier.fetchWallets();
+                            await transactionNotifier.fetchTransactions();
+                            await walletNotifier.fetchWallets();
                             ref.invalidate(financialSummaryProvider);
-                            Navigator.of(context).pop();
+
+                            // FIX: Add mounted check before using context
+                            if (mounted) {
+                              Navigator.of(context).pop();
+                            }
                           }
                         },
                         style: ElevatedButton.styleFrom(
