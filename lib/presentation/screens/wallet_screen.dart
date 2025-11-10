@@ -59,9 +59,30 @@ class WalletScreen extends ConsumerWidget {
             child: const Text('Batal'),
           ),
           TextButton(
-            onPressed: () {
-              ref.read(walletListProvider.notifier).removeWallet(walletId);
-              Navigator.of(ctx).pop();
+            onPressed: () async {
+              if (ctx.mounted) Navigator.of(ctx).pop();
+
+              try {
+                await ref
+                    .read(walletListProvider.notifier)
+                    .removeWallet(walletId);
+
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Akun berhasil dihapus.')),
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'Gagal menghapus akun. (Server Error: ${e.toString().contains("500") ? "Pastikan tidak ada transaksi di akun ini." : e.toString()})',
+                      ),
+                    ),
+                  );
+                }
+              }
             },
             child: const Text('Hapus', style: TextStyle(color: Colors.red)),
           ),
